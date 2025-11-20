@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kitchen Visualizer | Kitchen.New</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #2c3e50;
+            --secondary: #e67e22;
+            --accent: #3498db;
+            --light: #ecf0f1;
+            --dark: #2c3e50;
+            --text: #333;
+            --white: #fff;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #1a1a1a;
+            color: var(--white);
+            overflow: hidden;
+        }
+
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(44, 62, 80, 0.95);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .header h1 {
+            color: var(--white);
+            font-size: 1.5rem;
+        }
+
+        .header h1 span {
+            color: var(--secondary);
+        }
+
+        .back-btn {
+            background-color: var(--secondary);
+            color: var(--white);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s ease;
+        }
+
+        .back-btn:hover {
+            background-color: #d35400;
+            transform: translateY(-2px);
+        }
+
+        .canvas-container {
+            width: 100vw;
+            height: 100vh;
+            margin-top: 70px;
+        }
+
+        .controls-panel {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(44, 62, 80, 0.9);
+            padding: 1.5rem;
+            border-radius: 8px;
+            min-width: 250px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .controls-panel h3 {
+            color: var(--white);
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+        }
+
+        .control-group {
+            margin-bottom: 1rem;
+        }
+
+        .control-group label {
+            display: block;
+            color: var(--light);
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .control-group select,
+        .control-group input[type="range"] {
+            width: 100%;
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #555;
+            background-color: #2c3e50;
+            color: var(--white);
+            font-size: 0.9rem;
+        }
+
+        .control-group input[type="range"] {
+            padding: 0;
+        }
+
+        .info-text {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            background: rgba(44, 62, 80, 0.9);
+            padding: 1rem;
+            border-radius: 8px;
+            max-width: 300px;
+            font-size: 0.9rem;
+            line-height: 1.6;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .info-text p {
+            margin-bottom: 0.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .controls-panel {
+                bottom: 10px;
+                left: 10px;
+                right: 10px;
+                min-width: auto;
+            }
+
+            .info-text {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>kitchen.<span>new</span> - Kitchen Visualizer</h1>
+        <a href="index.html" class="back-btn">← Back to Home</a>
+    </div>
+
+    <div class="info-text">
+        <p><strong>Controls:</strong></p>
+        <p>• Left Click + Drag: Rotate</p>
+        <p>• Right Click + Drag: Pan</p>
+        <p>• Scroll: Zoom</p>
+        <p>• Use controls below to customize</p>
+    </div>
+
+    <div class="canvas-container" id="canvas-container"></div>
+
+    <div class="controls-panel">
+        <h3>Customize Your Kitchen</h3>
+        <div class="control-group">
+            <label for="cabinet-style">Cabinet Style</label>
+            <select id="cabinet-style">
+                <option value="modern">Modern</option>
+                <option value="traditional">Traditional</option>
+                <option value="rustic">Rustic</option>
+                <option value="contemporary">Contemporary</option>
+            </select>
+        </div>
+        <div class="control-group">
+            <label for="cabinet-color">Cabinet Color</label>
+            <select id="cabinet-color">
+                <option value="white">White</option>
+                <option value="gray">Gray</option>
+                <option value="brown">Brown</option>
+                <option value="black">Black</option>
+                <option value="blue">Blue</option>
+            </select>
+        </div>
+        <div class="control-group">
+            <label for="lighting">Lighting Intensity</label>
+            <input type="range" id="lighting" min="0" max="2" step="0.1" value="1">
+        </div>
+    </div>
+
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+            }
+        }
+    </script>
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/controls/OrbitControls.js';
+
+        // Scene setup
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x1a1a1a);
+
+        // Camera
+        const camera = new THREE.PerspectiveCamera(
+            75,
+            window.innerWidth / window.innerHeight,
+            0.1,
+            1000
+        );
+        camera.position.set(5, 5, 5);
+        camera.lookAt(0, 0, 0);
+
+        // Renderer
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight - 70);
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+        // Controls
+        const controls = new OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+        controls.minDistance = 3;
+        controls.maxDistance = 15;
+
+        // Lighting
+        const ambientLight = new THREE.AmbientLight(0xffffff, 1);
+        scene.add(ambientLight);
+
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+        directionalLight.position.set(5, 10, 5);
+        directionalLight.castShadow = true;
+        directionalLight.shadow.mapSize.width = 2048;
+        directionalLight.shadow.mapSize.height = 2048;
+        scene.add(directionalLight);
+
+        const pointLight = new THREE.PointLight(0xffffff, 0.5);
+        pointLight.position.set(-5, 5, -5);
+        scene.add(pointLight);
+
+        // Kitchen elements
+        let kitchenGroup = new THREE.Group();
+        scene.add(kitchenGroup);
+
+        // Materials
+        const materials = {
+            white: new THREE.MeshStandardMaterial({ color: 0xffffff }),
+            gray: new THREE.MeshStandardMaterial({ color: 0x808080 }),
+            brown: new THREE.MeshStandardMaterial({ color: 0x8b4513 }),
+            black: new THREE.MeshStandardMaterial({ color: 0x1a1a1a }),
+            blue: new THREE.MeshStandardMaterial({ color: 0x4169e1 }),
+            countertop: new THREE.MeshStandardMaterial({ color: 0xd3d3d3 }),
+            floor: new THREE.MeshStandardMaterial({ color: 0x4a4a4a }),
+            wall: new THREE.MeshStandardMaterial({ color: 0xf5f5f5 })
+        };
+
+        function createKitchen(cabinetColor = 'white') {
+            // Clear existing kitchen
+            kitchenGroup.clear();
+
+            const colorMaterial = materials[cabinetColor];
+
+            // Floor
+            const floorGeometry = new THREE.PlaneGeometry(10, 10);
+            const floor = new THREE.Mesh(floorGeometry, materials.floor);
+            floor.rotation.x = -Math.PI / 2;
+            floor.position.y = -0.5;
+            floor.receiveShadow = true;
+            kitchenGroup.add(floor);
+
+            // Back wall
+            const wallGeometry = new THREE.PlaneGeometry(10, 5);
+            const wall = new THREE.Mesh(wallGeometry, materials.wall);
+            wall.position.z = -5;
+            wall.position.y = 2;
+            kitchenGroup.add(wall);
+
+            // Base cabinets
+            const cabinetWidth = 1.5;
+            const cabinetDepth = 0.6;
+            const cabinetHeight = 0.9;
+
+            for (let i = 0; i < 5; i++) {
+                const cabinetGeometry = new THREE.BoxGeometry(cabinetWidth, cabinetHeight, cabinetDepth);
+                const cabinet = new THREE.Mesh(cabinetGeometry, colorMaterial);
+                cabinet.position.x = (i - 2) * 1.6;
+                cabinet.position.y = cabinetHeight / 2 - 0.5;
+                cabinet.position.z = -4;
+                cabinet.castShadow = true;
+                cabinet.receiveShadow = true;
+                kitchenGroup.add(cabinet);
+
+                // Cabinet doors
+                const doorGeometry = new THREE.BoxGeometry(cabinetWidth * 0.48, cabinetHeight * 0.9, 0.05);
+                const door1 = new THREE.Mesh(doorGeometry, colorMaterial);
+                door1.position.x = cabinet.position.x - cabinetWidth * 0.25;
+                door1.position.y = cabinet.position.y;
+                door1.position.z = cabinet.position.z + cabinetDepth / 2 + 0.025;
+                door1.castShadow = true;
+                kitchenGroup.add(door1);
+
+                const door2 = new THREE.Mesh(doorGeometry, colorMaterial);
+                door2.position.x = cabinet.position.x + cabinetWidth * 0.25;
+                door2.position.y = cabinet.position.y;
+                door2.position.z = cabinet.position.z + cabinetDepth / 2 + 0.025;
+                door2.castShadow = true;
+                kitchenGroup.add(door2);
+            }
+
+            // Countertop
+            const counterGeometry = new THREE.BoxGeometry(8, 0.1, 0.7);
+            const counter = new THREE.Mesh(counterGeometry, materials.countertop);
+            counter.position.y = cabinetHeight - 0.5;
+            counter.position.z = -4;
+            counter.castShadow = true;
+            counter.receiveShadow = true;
+            kitchenGroup.add(counter);
+
+            // Upper cabinets
+            const upperCabinetHeight = 1.2;
+            for (let i = 0; i < 5; i++) {
+                const upperCabinetGeometry = new THREE.BoxGeometry(cabinetWidth, upperCabinetHeight, cabinetDepth);
+                const upperCabinet = new THREE.Mesh(upperCabinetGeometry, colorMaterial);
+                upperCabinet.position.x = (i - 2) * 1.6;
+                upperCabinet.position.y = cabinetHeight + upperCabinetHeight / 2 + 0.1 - 0.5;
+                upperCabinet.position.z = -4;
+                upperCabinet.castShadow = true;
+                kitchenGroup.add(upperCabinet);
+
+                // Upper cabinet doors
+                const upperDoorGeometry = new THREE.BoxGeometry(cabinetWidth * 0.48, upperCabinetHeight * 0.9, 0.05);
+                const upperDoor1 = new THREE.Mesh(upperDoorGeometry, colorMaterial);
+                upperDoor1.position.x = upperCabinet.position.x - cabinetWidth * 0.25;
+                upperDoor1.position.y = upperCabinet.position.y;
+                upperDoor1.position.z = upperCabinet.position.z + cabinetDepth / 2 + 0.025;
+                upperDoor1.castShadow = true;
+                kitchenGroup.add(upperDoor1);
+
+                const upperDoor2 = new THREE.Mesh(upperDoorGeometry, colorMaterial);
+                upperDoor2.position.x = upperCabinet.position.x + cabinetWidth * 0.25;
+                upperDoor2.position.y = upperCabinet.position.y;
+                upperDoor2.position.z = upperCabinet.position.z + cabinetDepth / 2 + 0.025;
+                upperDoor2.castShadow = true;
+                kitchenGroup.add(upperDoor2);
+            }
+
+            // Island
+            const islandGeometry = new THREE.BoxGeometry(2, cabinetHeight, 1.5);
+            const island = new THREE.Mesh(islandGeometry, colorMaterial);
+            island.position.x = 0;
+            island.position.y = cabinetHeight / 2 - 0.5;
+            island.position.z = -1.5;
+            island.castShadow = true;
+            island.receiveShadow = true;
+            kitchenGroup.add(island);
+
+            const islandCounterGeometry = new THREE.BoxGeometry(2.1, 0.1, 1.6);
+            const islandCounter = new THREE.Mesh(islandCounterGeometry, materials.countertop);
+            islandCounter.position.y = cabinetHeight - 0.5;
+            islandCounter.position.z = -1.5;
+            islandCounter.castShadow = true;
+            islandCounter.receiveShadow = true;
+            kitchenGroup.add(islandCounter);
+        }
+
+        // Initialize kitchen
+        createKitchen('white');
+
+        // Control handlers
+        document.getElementById('cabinet-color').addEventListener('change', (e) => {
+            createKitchen(e.target.value);
+        });
+
+        document.getElementById('lighting').addEventListener('input', (e) => {
+            const intensity = parseFloat(e.target.value);
+            ambientLight.intensity = intensity;
+            directionalLight.intensity = intensity;
+        });
+
+        // Animation loop
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / (window.innerHeight - 70);
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight - 70);
+        });
+    </script>
+</body>
+</html>
+

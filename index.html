@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kitchen.New — Design your kitchen</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #2c3e50;
+            --secondary: #e67e22;
+            --accent: #3498db;
+            --light: #ecf0f1;
+            --dark: #2c3e50;
+            --text: #333;
+            --white: #fff;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #1a1a1a;
+            color: var(--white);
+            overflow: hidden;
+        }
+
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(44, 62, 80, 0.95);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .header h1 {
+            color: var(--white);
+            font-size: 1.5rem;
+        }
+
+        .header h1 span {
+            color: var(--secondary);
+        }
+
+        .back-btn {
+            background-color: var(--secondary);
+            color: var(--white);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s ease;
+        }
+
+        .back-btn:hover {
+            background-color: #d35400;
+            transform: translateY(-2px);
+        }
+
+        .canvas-container {
+            width: 100vw;
+            height: 100vh;
+            margin-top: 70px;
+        }
+
+        .controls-panel {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(44, 62, 80, 0.9);
+            padding: 1.5rem;
+            border-radius: 8px;
+            min-width: 250px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .controls-panel h3 {
+            color: var(--white);
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+        }
+
+        .control-group {
+            margin-bottom: 1rem;
+        }
+
+        .control-group label {
+            display: block;
+            color: var(--light);
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .control-group select,
+        .control-group input[type="range"] {
+            width: 100%;
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #555;
+            background-color: #2c3e50;
+            color: var(--white);
+            font-size: 0.9rem;
+        }
+
+        .control-group input[type="range"] {
+            padding: 0;
+        }
+
+        .output-actions { margin-top: 1rem; }
+        .output-actions label { color: #a0c040; }
+        .output-btn {
+            display: block;
+            width: 100%;
+            margin-top: 0.5rem;
+            padding: 10px 14px;
+            background: var(--secondary);
+            color: var(--white);
+            border: none;
+            border-radius: 4px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+        .output-btn:hover { background: #d35400; }
+        .output-btn:last-child { margin-top: 0.5rem; }
+
+        .info-text {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            background: rgba(44, 62, 80, 0.9);
+            padding: 1rem;
+            border-radius: 8px;
+            max-width: 300px;
+            font-size: 0.9rem;
+            line-height: 1.6;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .info-text p {
+            margin-bottom: 0.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .controls-panel {
+                bottom: 10px;
+                left: 10px;
+                right: 10px;
+                min-width: auto;
+            }
+
+            .info-text {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>kitchen.<span>new</span></h1>
+        <a href="home.html" class="back-btn">← About / Home</a>
+    </div>
+
+    <div class="info-text">
+        <p><strong>Controls:</strong></p>
+        <p>• Left Click + Drag: Rotate</p>
+        <p>• Right Click + Drag: Pan</p>
+        <p>• Scroll: Zoom</p>
+        <p>• Use controls below to customize</p>
+    </div>
+
+    <div class="canvas-container" id="canvas-container"></div>
+
+    <div class="controls-panel">
+        <h3>Customize Your Kitchen</h3>
+        <div class="control-group">
+            <label for="cabinet-style">Cabinet Style</label>
+            <select id="cabinet-style">
+                <option value="modern">Modern</option>
+                <option value="traditional">Traditional</option>
+                <option value="rustic">Rustic</option>
+                <option value="contemporary">Contemporary</option>
+            </select>
+        </div>
+        <div class="control-group">
+            <label for="cabinet-color">Cabinet Color</label>
+            <select id="cabinet-color">
+                <option value="white">White</option>
+                <option value="gray">Gray</option>
+                <option value="brown">Brown</option>
+                <option value="black">Black</option>
+                <option value="blue">Blue</option>
+            </select>
+        </div>
+        <div class="control-group">
+            <label for="floor-color">Floor Color</label>
+            <select id="floor-color">
+                <option value="gray">Gray</option>
+                <option value="beige">Beige</option>
+                <option value="white">White</option>
+                <option value="brown">Brown</option>
+                <option value="slate">Slate</option>
+                <option value="terracotta">Terracotta</option>
+            </select>
+        </div>
+        <div class="control-group">
+            <label for="floor-pattern">Floor Pattern</label>
+            <select id="floor-pattern">
+                <option value="tile">Tile squares</option>
+                <option value="brick">Brick</option>
+            </select>
+        </div>
+        <div class="control-group">
+            <label for="lighting">Lighting Intensity</label>
+            <input type="range" id="lighting" min="0" max="2" step="0.1" value="1">
+        </div>
+        <div class="control-group output-actions">
+            <label>Your design — generated output</label>
+            <button type="button" id="download-design-btn" class="output-btn">Download kitchen image</button>
+            <button type="button" id="share-design-btn" class="output-btn">Copy shareable design link</button>
+        </div>
+    </div>
+
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+            }
+        }
+    </script>
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/controls/OrbitControls.js';
+
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x1a1a1a);
+
+        const camera = new THREE.PerspectiveCamera(
+            75,
+            window.innerWidth / window.innerHeight,
+            0.1,
+            1000
+        );
+        camera.position.set(5, 5, 5);
+        camera.lookAt(0, 0, 0);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight - 70);
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+        const controls = new OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+        controls.minDistance = 3;
+        controls.maxDistance = 15;
+
+        const ambientLight = new THREE.AmbientLight(0xffffff, 1);
+        scene.add(ambientLight);
+
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+        directionalLight.position.set(5, 10, 5);
+        directionalLight.castShadow = true;
+        directionalLight.shadow.mapSize.width = 2048;
+        directionalLight.shadow.mapSize.height = 2048;
+        scene.add(directionalLight);
+
+        const pointLight = new THREE.PointLight(0xffffff, 0.5);
+        pointLight.position.set(-5, 5, -5);
+        scene.add(pointLight);
+
+        let kitchenGroup = new THREE.Group();
+        scene.add(kitchenGroup);
+
+        const materials = {
+            white: new THREE.MeshStandardMaterial({ color: 0xffffff }),
+            gray: new THREE.MeshStandardMaterial({ color: 0x808080 }),
+            brown: new THREE.MeshStandardMaterial({ color: 0x8b4513 }),
+            black: new THREE.MeshStandardMaterial({ color: 0x1a1a1a }),
+            blue: new THREE.MeshStandardMaterial({ color: 0x4169e1 }),
+            countertop: new THREE.MeshStandardMaterial({ color: 0xd3d3d3 }),
+            wall: new THREE.MeshStandardMaterial({ color: 0xf5f5f5 }),
+            grout: new THREE.MeshStandardMaterial({ color: 0x3a3a3a })
+        };
+        const floorColors = {
+            gray: 0x5a5a5a,
+            beige: 0xc4a574,
+            white: 0xe8e4df,
+            brown: 0x6b4423,
+            slate: 0x4a5568,
+            terracotta: 0xb55233
+        };
+
+        const doorDepth = 0.05;
+        const frameDepth = 0.02;
+
+        function addFloor(group, floorColorKey, pattern) {
+            const color = floorColors[floorColorKey] != null ? floorColors[floorColorKey] : floorColors.gray;
+            const floorMat = new THREE.MeshStandardMaterial({ color });
+            const groutMat = materials.grout;
+            const floorY = -0.5;
+            const tileH = 0.02;
+
+            const size = 10;
+            const base = new THREE.PlaneGeometry(size, size);
+            const baseMesh = new THREE.Mesh(base, groutMat);
+            baseMesh.rotation.x = -Math.PI / 2;
+            baseMesh.position.y = floorY;
+            baseMesh.receiveShadow = true;
+            group.add(baseMesh);
+
+            if (pattern === 'tile') {
+                const tileSize = 0.48;
+                const gap = 0.04;
+                const step = tileSize + gap;
+                const half = size / 2;
+                for (let ix = -half; ix < half; ix += step) {
+                    for (let iz = -half; iz < half; iz += step) {
+                        const g = new THREE.BoxGeometry(tileSize, tileH, tileSize);
+                        const m = new THREE.Mesh(g, floorMat);
+                        m.position.set(ix + step / 2, floorY + tileH / 2, iz + step / 2);
+                        m.rotation.y = 0;
+                        m.castShadow = true;
+                        m.receiveShadow = true;
+                        group.add(m);
+                    }
+                }
+            } else {
+                const brickW = 0.58;
+                const brickH = 0.28;
+                const gap = 0.05;
+                const stepX = brickW + gap;
+                const stepZ = brickH + gap;
+                const half = size / 2;
+                let row = 0;
+                for (let z = -half; z < half; z += stepZ, row++) {
+                    const offsetX = (row % 2) * (stepX / 2);
+                    for (let x = -half - stepX; x < half + stepX; x += stepX) {
+                        const px = x + offsetX + stepX / 2;
+                        const pz = z + stepZ / 2;
+                        if (Math.abs(px) > half + brickW / 2 || Math.abs(pz) > half + brickH / 2) continue;
+                        const g = new THREE.BoxGeometry(brickW, tileH, brickH);
+                        const m = new THREE.Mesh(g, floorMat);
+                        m.position.set(px, floorY + tileH / 2, pz);
+                        m.castShadow = true;
+                        m.receiveShadow = true;
+                        group.add(m);
+                    }
+                }
+            }
+        }
+
+        function addDoorMeshes(group, style, doorW, doorH, colorMaterial, cabX, cabY, cz, cabinetWidth) {
+            const leftX = cabX - cabinetWidth * 0.25;
+            const rightX = cabX + cabinetWidth * 0.25;
+            const z = cz + frameDepth;
+
+            function addOneDoor(centerX) {
+                if (style === 'modern') {
+                    const d = new THREE.Mesh(new THREE.BoxGeometry(doorW, doorH, doorDepth), colorMaterial);
+                    d.position.set(centerX, cabY, z);
+                    d.castShadow = true;
+                    group.add(d);
+                    return;
+                }
+                if (style === 'traditional') {
+                    const frameW = doorW * 0.08;
+                    const innerW = doorW - frameW * 2;
+                    const innerH = doorH - frameW * 2;
+                    const base = new THREE.Mesh(new THREE.BoxGeometry(doorW, doorH, doorDepth), colorMaterial);
+                    base.position.set(centerX, cabY, z);
+                    base.castShadow = true;
+                    group.add(base);
+                    const inner = new THREE.Mesh(new THREE.BoxGeometry(innerW, innerH, doorDepth * 0.6), colorMaterial);
+                    inner.position.set(centerX, cabY, z - 0.008);
+                    inner.castShadow = true;
+                    group.add(inner);
+                    return;
+                }
+                if (style === 'rustic') {
+                    const thick = doorDepth * 2;
+                    const d = new THREE.Mesh(new THREE.BoxGeometry(doorW, doorH, thick), colorMaterial);
+                    d.position.set(centerX, cabY, z);
+                    d.castShadow = true;
+                    group.add(d);
+                    const braceW = doorW * 0.08;
+                    const b1 = new THREE.Mesh(new THREE.BoxGeometry(doorW, braceW, thick * 1.2), colorMaterial);
+                    b1.position.set(centerX, cabY + doorH * 0.25, z + thick * 0.5);
+                    b1.castShadow = true;
+                    group.add(b1);
+                    const b2 = new THREE.Mesh(new THREE.BoxGeometry(braceW, doorH, thick * 1.2), colorMaterial);
+                    b2.position.set(centerX - doorW * 0.35, cabY, z + thick * 0.5);
+                    b2.castShadow = true;
+                    group.add(b2);
+                    const b3 = new THREE.Mesh(new THREE.BoxGeometry(braceW, doorH, thick * 1.2), colorMaterial);
+                    b3.position.set(centerX + doorW * 0.35, cabY, z + thick * 0.5);
+                    b3.castShadow = true;
+                    group.add(b3);
+                    return;
+                }
+                if (style === 'contemporary') {
+                    const slab = new THREE.Mesh(new THREE.BoxGeometry(doorW, doorH, doorDepth), colorMaterial);
+                    slab.position.set(centerX, cabY, z);
+                    slab.castShadow = true;
+                    group.add(slab);
+                    const rail = doorH * 0.1;
+                    const mid = new THREE.Mesh(new THREE.BoxGeometry(doorW * 0.9, rail, doorDepth * 1.4), colorMaterial);
+                    mid.position.set(centerX, cabY, z + doorDepth * 0.5);
+                    mid.castShadow = true;
+                    group.add(mid);
+                    return;
+                }
+                const d = new THREE.Mesh(new THREE.BoxGeometry(doorW, doorH, doorDepth), colorMaterial);
+                d.position.set(centerX, cabY, z);
+                d.castShadow = true;
+                group.add(d);
+            }
+            addOneDoor(leftX);
+            addOneDoor(rightX);
+        }
+
+        function createKitchen(cabinetColor = 'white', style = 'modern', floorColor = 'gray', floorPattern = 'tile') {
+            kitchenGroup.clear();
+            const colorMaterial = materials[cabinetColor];
+
+            addFloor(kitchenGroup, floorColor, floorPattern);
+
+            const wallGeometry = new THREE.PlaneGeometry(10, 5);
+            const wall = new THREE.Mesh(wallGeometry, materials.wall);
+            wall.position.z = -5;
+            wall.position.y = 2;
+            kitchenGroup.add(wall);
+
+            const cabinetWidth = 1.5;
+            const cabinetDepth = 0.6;
+            const cabinetHeight = 0.9;
+            const doorW = cabinetWidth * 0.48;
+            const doorH = cabinetHeight * 0.9;
+            const cabZ = -4;
+
+            for (let i = 0; i < 5; i++) {
+                const cabX = (i - 2) * 1.6;
+                const cabY = cabinetHeight / 2 - 0.5;
+                const cabinetGeometry = new THREE.BoxGeometry(cabinetWidth, cabinetHeight, cabinetDepth);
+                const cabinet = new THREE.Mesh(cabinetGeometry, colorMaterial);
+                cabinet.position.set(cabX, cabY, cabZ);
+                cabinet.castShadow = true;
+                cabinet.receiveShadow = true;
+                kitchenGroup.add(cabinet);
+
+                addDoorMeshes(kitchenGroup, style, doorW, doorH, colorMaterial, cabX, cabY, cabZ + cabinetDepth / 2, cabinetWidth);
+            }
+
+            const counterGeometry = new THREE.BoxGeometry(8, 0.1, 0.7);
+            const counter = new THREE.Mesh(counterGeometry, materials.countertop);
+            counter.position.y = cabinetHeight - 0.5;
+            counter.position.z = -4;
+            counter.castShadow = true;
+            counter.receiveShadow = true;
+            kitchenGroup.add(counter);
+
+            const upperCabinetHeight = 1.2;
+            const upperDoorH = upperCabinetHeight * 0.9;
+            for (let i = 0; i < 5; i++) {
+                const cabX = (i - 2) * 1.6;
+                const cabY = cabinetHeight + upperCabinetHeight / 2 + 0.1 - 0.5;
+                const upperCabinetGeometry = new THREE.BoxGeometry(cabinetWidth, upperCabinetHeight, cabinetDepth);
+                const upperCabinet = new THREE.Mesh(upperCabinetGeometry, colorMaterial);
+                upperCabinet.position.set(cabX, cabY, cabZ);
+                upperCabinet.castShadow = true;
+                kitchenGroup.add(upperCabinet);
+
+                addDoorMeshes(kitchenGroup, style, doorW, upperDoorH, colorMaterial, cabX, cabY, cabZ + cabinetDepth / 2, cabinetWidth);
+            }
+
+            const islandGeometry = new THREE.BoxGeometry(2, cabinetHeight, 1.5);
+            const island = new THREE.Mesh(islandGeometry, colorMaterial);
+            island.position.x = 0;
+            island.position.y = cabinetHeight / 2 - 0.5;
+            island.position.z = -1.5;
+            island.castShadow = true;
+            island.receiveShadow = true;
+            kitchenGroup.add(island);
+
+            const islandCounterGeometry = new THREE.BoxGeometry(2.1, 0.1, 1.6);
+            const islandCounter = new THREE.Mesh(islandCounterGeometry, materials.countertop);
+            islandCounter.position.y = cabinetHeight - 0.5;
+            islandCounter.position.z = -1.5;
+            islandCounter.castShadow = true;
+            islandCounter.receiveShadow = true;
+            kitchenGroup.add(islandCounter);
+        }
+
+        function getStyle() { return document.getElementById('cabinet-style').value || 'modern'; }
+        function getColor() { return document.getElementById('cabinet-color').value || 'white'; }
+        function getFloorColor() { return document.getElementById('floor-color').value || 'gray'; }
+        function getFloorPattern() { return document.getElementById('floor-pattern').value || 'tile'; }
+
+        function rebuildKitchen() {
+            createKitchen(getColor(), getStyle(), getFloorColor(), getFloorPattern());
+        }
+
+        document.getElementById('cabinet-color').addEventListener('change', rebuildKitchen);
+        document.getElementById('cabinet-style').addEventListener('change', rebuildKitchen);
+        document.getElementById('floor-color').addEventListener('change', rebuildKitchen);
+        document.getElementById('floor-pattern').addEventListener('change', rebuildKitchen);
+
+        document.getElementById('lighting').addEventListener('input', (e) => {
+            const intensity = parseFloat(e.target.value);
+            ambientLight.intensity = intensity;
+            directionalLight.intensity = intensity;
+        });
+
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / (window.innerHeight - 70);
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight - 70);
+        });
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const colorParam = urlParams.get('color');
+        const styleParam = urlParams.get('style');
+        const lightParam = urlParams.get('light');
+        const floorParam = urlParams.get('floor');
+        const floorPatternParam = urlParams.get('floorPattern');
+        if (colorParam && document.getElementById('cabinet-color').querySelector(`[value="${colorParam}"]`)) {
+            document.getElementById('cabinet-color').value = colorParam;
+        }
+        if (styleParam && document.getElementById('cabinet-style').querySelector(`[value="${styleParam}"]`)) {
+            document.getElementById('cabinet-style').value = styleParam;
+        }
+        if (floorParam && document.getElementById('floor-color').querySelector(`[value="${floorParam}"]`)) {
+            document.getElementById('floor-color').value = floorParam;
+        }
+        if (floorPatternParam && document.getElementById('floor-pattern').querySelector(`[value="${floorPatternParam}"]`)) {
+            document.getElementById('floor-pattern').value = floorPatternParam;
+        }
+        if (lightParam != null) {
+            const v = Math.max(0, Math.min(2, parseFloat(lightParam)));
+            document.getElementById('lighting').value = v;
+            ambientLight.intensity = v;
+            directionalLight.intensity = v;
+        }
+        createKitchen(getColor(), getStyle(), getFloorColor(), getFloorPattern());
+
+        document.getElementById('download-design-btn').addEventListener('click', () => {
+            renderer.render(scene, camera);
+            const data = renderer.domElement.toDataURL('image/png');
+            const a = document.createElement('a');
+            a.href = data;
+            a.download = 'kitchen-design.png';
+            a.click();
+        });
+
+        document.getElementById('share-design-btn').addEventListener('click', () => {
+            const color = document.getElementById('cabinet-color').value;
+            const style = document.getElementById('cabinet-style').value;
+            const light = document.getElementById('lighting').value;
+            const floor = document.getElementById('floor-color').value;
+            const floorPattern = document.getElementById('floor-pattern').value;
+            const url = `${window.location.origin}${window.location.pathname}?color=${encodeURIComponent(color)}&style=${encodeURIComponent(style)}&light=${encodeURIComponent(light)}&floor=${encodeURIComponent(floor)}&floorPattern=${encodeURIComponent(floorPattern)}`;
+            navigator.clipboard.writeText(url).then(() => {
+                const btn = document.getElementById('share-design-btn');
+                const t = btn.textContent;
+                btn.textContent = 'Link copied!';
+                setTimeout(() => { btn.textContent = t; }, 2000);
+            });
+        });
+    </script>
+</body>
+</html>
